@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getTourReportStore } from '$lib/features/tour-report/model/context';
-	import Dashboard from '$lib/widgets/dashboard/Dashboard.svelte';
+	import ExcursionsManager from '$lib/widgets/excursions-manager/ExcursionsManager.svelte';
 
 	const store = getTourReportStore();
 </script>
 
-<Dashboard {store} />
+<ExcursionsManager {store} />

@@ -34,8 +34,12 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		rules: {
+			// Every URL is built in src/lib/shared/model/navigation.ts, which calls
+			// resolve() there. The rule only recognises resolve() inlined at the call
+			// site, so it cannot see through that indirection — keeping it on would
+			// mean scattering route ids across every component.
+			'svelte/no-navigation-without-resolve': 'off'
+		}
 	}
 );

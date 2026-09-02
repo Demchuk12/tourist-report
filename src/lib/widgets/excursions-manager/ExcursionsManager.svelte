@@ -5,6 +5,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/shared/lib/date';
+	import { entityRoute } from '$lib/shared/model/navigation';
 	import EmptyState from '$lib/shared/ui/EmptyState.svelte';
 	import Modal from '$lib/shared/ui/Modal.svelte';
 
@@ -93,7 +94,11 @@
 								>
 							</div>
 						</div>
-						<h2>{excursion.title}</h2>
+						<h2>
+							<a class="card-link" href={entityRoute.excursion.detail(excursion.id)}
+								>{excursion.title}</a
+							>
+						</h2>
 						<p class="destination">⌖ {excursion.location}</p>
 						<div class="excursion-meta">
 							<span>◷ {excursion.time}</span>

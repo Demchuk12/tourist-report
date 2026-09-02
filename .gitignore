@@ -28,5 +28,7 @@ project.inlang/cache/
 # AI Agent Rules
 GEMINI.md
 AGENTS.md
+CLAUDE.md
 .agents/
 .gemini/
+.claude/

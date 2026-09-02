@@ -7,6 +7,12 @@
 		children,
 		wide = false
 	}: { title: string; onClose: () => void; children: Snippet; wide?: boolean } = $props();
+
+	// Without this the page behind the sheet keeps scrolling under the finger on iOS.
+	$effect(() => {
+		document.body.classList.add('is-locked');
+		return () => document.body.classList.remove('is-locked');
+	});
 </script>
 
 <svelte:window onkeydown={(event) => event.key === 'Escape' && onClose()} />
@@ -47,8 +53,11 @@
 		position: relative;
 		width: min(100%, 36rem);
 		max-height: min(90vh, 52rem);
+		max-height: min(90dvh, 52rem);
 		margin: 0;
 		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
 		padding: 0;
 		border: 0;
 		border-radius: 1.25rem;
@@ -103,7 +112,26 @@
 		.modal.wide {
 			width: 100%;
 			max-height: 94vh;
+			max-height: 94dvh;
 			border-radius: 1.25rem 1.25rem 0 0;
+			padding-bottom: env(safe-area-inset-bottom);
+		}
+
+		header {
+			padding: 1rem 1.15rem;
+		}
+
+		/* Grab handle so the sheet reads as draggable-style mobile UI. */
+		header::before {
+			position: absolute;
+			top: 0.4rem;
+			left: 50%;
+			width: 2.5rem;
+			height: 0.25rem;
+			border-radius: 999px;
+			background: var(--border-strong);
+			content: '';
+			transform: translateX(-50%);
 		}
 	}
 </style>

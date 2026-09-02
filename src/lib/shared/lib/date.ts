@@ -22,3 +22,16 @@ export function formatDate(value: string, locale: Locale): string {
 export function formatDateRange(start: string, end: string, locale: Locale): string {
 	return `${formatDate(start, locale)} — ${formatDate(end, locale)}`;
 }
+
+/** For audit fields (`createdAt`/`updatedAt`), which hold full ISO timestamps. */
+export function formatDateTime(value: string, locale: Locale): string {
+	if (!value) return '—';
+
+	return new Intl.DateTimeFormat(localeMap[locale], {
+		day: '2-digit',
+		month: 'short',
+		year: 'numeric',
+		hour: '2-digit',
+		minute: '2-digit'
+	}).format(new Date(value));
+}

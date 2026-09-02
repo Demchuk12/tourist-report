@@ -3,10 +3,9 @@
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatDateRange } from '$lib/shared/lib/date';
-	import type { AppSection } from '$lib/shared/model/navigation';
+	import { entityRoute, sectionHref } from '$lib/shared/model/navigation';
 
-	let { store, onNavigate }: { store: TourReportStore; onNavigate: (section: AppSection) => void } =
-		$props();
+	let { store }: { store: TourReportStore } = $props();
 
 	const activeTours = $derived(store.data.tours.filter((tour) => tour.status === 'active').length);
 	const upcomingTours = $derived(
@@ -28,26 +27,26 @@
 	</div>
 
 	<div class="stats-grid">
-		<button type="button" onclick={() => onNavigate('tours')}>
+		<a href={sectionHref.tours}>
 			<span class="stat-icon blue">🧭</span>
 			<span class="stat-value">{store.data.tours.length}</span>
 			<span class="stat-label">{m.metric_all_tours()}</span>
-		</button>
-		<button type="button" onclick={() => onNavigate('tours')}>
+		</a>
+		<a href={sectionHref.tours}>
 			<span class="stat-icon green">↗</span>
 			<span class="stat-value">{activeTours}</span>
 			<span class="stat-label">{m.metric_active_tours()}</span>
-		</button>
-		<button type="button" onclick={() => onNavigate('tourists')}>
+		</a>
+		<a href={sectionHref.tourists}>
 			<span class="stat-icon violet">👤</span>
 			<span class="stat-value">{store.data.tourists.length}</span>
 			<span class="stat-label">{m.metric_all_tourists()}</span>
-		</button>
-		<button type="button" onclick={() => onNavigate('excursions')}>
+		</a>
+		<a href={sectionHref.excursions}>
 			<span class="stat-icon amber">🏛</span>
 			<span class="stat-value">{store.data.excursions.length}</span>
 			<span class="stat-label">{m.metric_all_excursions()}</span>
-		</button>
+		</a>
 	</div>
 
 	<div class="dashboard-grid">
@@ -57,15 +56,13 @@
 					<h2>{m.upcoming_tours_title()}</h2>
 					<p>{m.upcoming_tours_subtitle()}</p>
 				</div>
-				<button class="text-button" type="button" onclick={() => onNavigate('tours')}
-					>{m.action_view_all()} →</button
-				>
+				<a class="text-button" href={sectionHref.tours}>{m.action_view_all()} →</a>
 			</div>
 
 			{#if upcomingTours.length}
 				<div class="upcoming-list">
 					{#each upcomingTours as tour (tour.id)}
-						<button type="button" onclick={() => onNavigate('tours')}>
+						<a href={entityRoute.tour.detail(tour.id)}>
 							<span class="tour-mark">{tour.destination.slice(0, 1).toUpperCase()}</span>
 							<span class="tour-summary">
 								<strong>{tour.name}</strong>
@@ -78,16 +75,14 @@
 								>
 							</span>
 							<span class="tour-count">{tour.touristIds.length} 👤</span>
-						</button>
+						</a>
 					{/each}
 				</div>
 			{:else}
 				<div class="panel-empty">
 					<span>🗓</span>
 					<p>{m.no_upcoming_tours()}</p>
-					<button class="button secondary" type="button" onclick={() => onNavigate('tours')}
-						>{m.action_create_first_tour()}</button
-					>
+					<a class="button secondary" href={sectionHref.tours}>{m.action_create_first_tour()}</a>
 				</div>
 			{/if}
 		</div>
@@ -134,7 +129,7 @@
 		margin-bottom: 1rem;
 	}
 
-	.stats-grid button {
+	.stats-grid a {
 		display: grid;
 		grid-template-columns: auto 1fr;
 		gap: 0.15rem 0.9rem;
@@ -146,13 +141,14 @@
 		color: inherit;
 		font: inherit;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
 		transition:
 			transform 150ms ease,
 			box-shadow 150ms ease;
 	}
 
-	.stats-grid button:hover {
+	.stats-grid a:hover {
 		transform: translateY(-2px);
 		box-shadow: var(--shadow);
 	}
@@ -238,6 +234,7 @@
 		font: inherit;
 		font-size: 0.78rem;
 		font-weight: 750;
+		text-decoration: none;
 		white-space: nowrap;
 		cursor: pointer;
 	}
@@ -246,7 +243,7 @@
 		display: grid;
 	}
 
-	.upcoming-list > button {
+	.upcoming-list > a {
 		display: flex;
 		align-items: center;
 		gap: 0.9rem;
@@ -257,6 +254,7 @@
 		color: inherit;
 		font: inherit;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
 	}
 
@@ -365,7 +363,7 @@
 			gap: 0.65rem;
 		}
 
-		.stats-grid button {
+		.stats-grid a {
 			grid-template-columns: 1fr;
 			padding: 1rem;
 		}

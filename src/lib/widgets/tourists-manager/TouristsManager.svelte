@@ -3,6 +3,7 @@
 	import type { TourReportStore } from '$lib/features/tour-report/model/tour-report-store.svelte';
 	import TouristForm from '$lib/features/tourist-form/ui/TouristForm.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { entityRoute } from '$lib/shared/model/navigation';
 	import EmptyState from '$lib/shared/ui/EmptyState.svelte';
 	import Modal from '$lib/shared/ui/Modal.svelte';
 
@@ -89,7 +90,11 @@
 								>
 							</div>
 						</div>
-						<h2>{tourist.fullName}</h2>
+						<h2>
+							<a class="card-link" href={entityRoute.tourist.detail(tourist.id)}
+								>{tourist.fullName}</a
+							>
+						</h2>
 						<div class="contact-list">
 							{#if tourist.phone}<a href={`tel:${tourist.phone}`}>{tourist.phone}</a>{/if}
 							{#if tourist.email}<a href={`mailto:${tourist.email}`}>{tourist.email}</a>{/if}

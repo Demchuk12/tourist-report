@@ -1,10 +1,22 @@
 <script lang="ts">
 	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
 	import * as m from '$lib/paraglide/messages';
-	import type { AppSection } from '$lib/shared/model/navigation';
+	import { isSectionActive, sectionHref, type AppSection } from '$lib/shared/model/navigation';
 
-	let { active, onNavigate }: { active: AppSection; onNavigate: (section: AppSection) => void } =
-		$props();
+	let {
+		pathname,
+		onOpenSearch
+	}: {
+		pathname: string;
+		onOpenSearch: () => void;
+	} = $props();
+
+	// Resolved on the client only, so SSR output stays stable across platforms.
+	let shortcutHint = $state('Ctrl K');
+
+	$effect(() => {
+		if (navigator.userAgent.includes('Mac')) shortcutHint = '⌘K';
+	});
 
 	const navigation: { id: AppSection; icon: string; label: () => string }[] = [
 		{ id: 'overview', icon: '⌂', label: m.nav_overview },
@@ -24,12 +36,24 @@
 		</div>
 	</div>
 
+	<button
+		class="search-trigger"
+		type="button"
+		aria-label={m.search_global_title()}
+		onclick={onOpenSearch}
+	>
+		<span class="nav-icon" aria-hidden="true">⌕</span>
+		<span class="search-trigger-label">{m.action_search()}</span>
+		<kbd aria-hidden="true">{shortcutHint}</kbd>
+	</button>
+
 	<nav aria-label={m.main_navigation()}>
 		{#each navigation as item (item.id)}
-			<button class:active={active === item.id} type="button" onclick={() => onNavigate(item.id)}>
+			{@const active = isSectionActive(pathname, item.id)}
+			<a href={sectionHref[item.id]} class:active aria-current={active ? 'page' : undefined}>
 				<span class="nav-icon" aria-hidden="true">{item.icon}</span>
 				<span>{item.label()}</span>
-			</button>
+			</a>
 		{/each}
 	</nav>
 
@@ -93,12 +117,58 @@
 		white-space: nowrap;
 	}
 
+	.search-trigger {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.9rem;
+		padding: 0.5rem 0.6rem;
+		border: 1px solid var(--border);
+		border-radius: 0.8rem;
+		background: white;
+		color: var(--text-muted);
+		font: inherit;
+		font-size: 0.82rem;
+		font-weight: 650;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			border-color 150ms ease,
+			box-shadow 150ms ease;
+	}
+
+	.search-trigger:hover {
+		border-color: #7dd3fc;
+		box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.08);
+	}
+
+	.search-trigger-label {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.search-trigger kbd {
+		display: inline-grid;
+		height: 1.4rem;
+		place-items: center;
+		padding: 0 0.4rem;
+		border: 1px solid var(--border-strong);
+		border-bottom-width: 2px;
+		border-radius: 0.4rem;
+		background: var(--surface-muted);
+		font-family: inherit;
+		font-size: 0.62rem;
+		font-weight: 750;
+		white-space: nowrap;
+	}
+
 	nav {
 		display: grid;
 		gap: 0.35rem;
 	}
 
-	nav button {
+	nav a {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
@@ -112,18 +182,19 @@
 		font-size: 0.86rem;
 		font-weight: 650;
 		text-align: left;
+		text-decoration: none;
 		cursor: pointer;
 		transition:
 			background 150ms ease,
 			color 150ms ease;
 	}
 
-	nav button:hover {
+	nav a:hover {
 		background: #edf3f8;
 		color: var(--text);
 	}
 
-	nav button.active {
+	nav a.active {
 		background: #e0f2fe;
 		color: #075985;
 	}
@@ -137,7 +208,7 @@
 		font-size: 1rem;
 	}
 
-	nav button.active .nav-icon {
+	nav a.active .nav-icon {
 		background: white;
 		box-shadow: 0 3px 10px rgba(14, 116, 144, 0.1);
 	}
@@ -167,8 +238,11 @@
 			height: auto;
 			flex-direction: row;
 			align-items: center;
-			justify-content: space-between;
+			gap: 0.6rem;
 			padding: 0.7rem 0.8rem;
+			padding-top: calc(0.7rem + env(safe-area-inset-top));
+			padding-right: calc(0.8rem + env(safe-area-inset-right));
+			padding-left: calc(0.8rem + env(safe-area-inset-left));
 			border-right: 0;
 			border-bottom: 1px solid var(--border);
 			background: #fafdff;
@@ -176,7 +250,27 @@
 		}
 
 		.brand-block {
+			margin-right: auto;
+			min-width: 0;
 			padding: 0;
+		}
+
+		/* Collapses to a tap target in the top bar; the palette itself goes full-screen. */
+		.search-trigger {
+			width: 2.75rem;
+			height: 2.75rem;
+			flex: 0 0 auto;
+			justify-content: center;
+			gap: 0;
+			margin: 0;
+			padding: 0;
+			border-radius: 0.8rem;
+			background: var(--surface-muted);
+		}
+
+		.search-trigger-label,
+		.search-trigger kbd {
+			display: none;
 		}
 
 		.brand-block small,
@@ -193,9 +287,9 @@
 		nav {
 			position: fixed;
 			z-index: 30;
-			right: 0.65rem;
-			bottom: 0.65rem;
-			left: 0.65rem;
+			right: calc(0.65rem + env(safe-area-inset-right));
+			bottom: calc(0.65rem + env(safe-area-inset-bottom));
+			left: calc(0.65rem + env(safe-area-inset-left));
 			display: grid;
 			grid-template-columns: repeat(5, 1fr);
 			gap: 0.2rem;
@@ -207,8 +301,10 @@
 			backdrop-filter: blur(18px);
 		}
 
-		nav button {
+		nav a {
+			min-height: 3rem;
 			flex-direction: column;
+			justify-content: center;
 			gap: 0.1rem;
 			padding: 0.4rem 0.2rem;
 			font-size: 0.63rem;

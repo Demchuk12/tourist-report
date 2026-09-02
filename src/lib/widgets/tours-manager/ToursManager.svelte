@@ -5,6 +5,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatDateRange } from '$lib/shared/lib/date';
+	import { entityRoute } from '$lib/shared/model/navigation';
 	import EmptyState from '$lib/shared/ui/EmptyState.svelte';
 	import Modal from '$lib/shared/ui/Modal.svelte';
 
@@ -89,7 +90,9 @@
 							</div>
 						</div>
 
-						<h2>{tour.name}</h2>
+						<h2>
+							<a class="card-link" href={entityRoute.tour.detail(tour.id)}>{tour.name}</a>
+						</h2>
 						<p class="destination">⌖ {tour.destination}</p>
 						<p class="date-range">{formatDateRange(tour.startDate, tour.endDate, getLocale())}</p>
 
