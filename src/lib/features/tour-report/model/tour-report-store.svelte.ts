@@ -47,18 +47,42 @@ export class TourReportStore {
 		this.persist();
 	}
 
-	createTourist(draft: TouristDraft): void {
+	createTourist(draft: TouristDraft, tourIds: string[] = []): void {
 		const now = nowIso();
-		this.data.tourists.unshift({ ...draft, id: createId(), createdAt: now, updatedAt: now });
+		const id = createId();
+
+		this.data.tourists.unshift({ ...draft, id, createdAt: now, updatedAt: now });
+		this.#assignTouristToTours(id, tourIds);
 		this.persist();
 	}
 
-	updateTourist(id: string, draft: TouristDraft): void {
+	updateTourist(id: string, draft: TouristDraft, tourIds?: string[]): void {
 		const tourist = this.data.tourists.find((item) => item.id === id);
 		if (!tourist) return;
 
 		Object.assign(tourist, draft, { updatedAt: nowIso() });
+		if (tourIds) this.#assignTouristToTours(id, tourIds);
 		this.persist();
+	}
+
+	/**
+	 * Tour membership lives on `Tour.touristIds` — the tourist form edits it from
+	 * the other side rather than mirroring the relation onto the tourist, which
+	 * would give the same fact two places to disagree.
+	 */
+	#assignTouristToTours(touristId: string, tourIds: string[]): void {
+		const now = nowIso();
+
+		for (const tour of this.data.tours) {
+			const shouldBelong = tourIds.includes(tour.id);
+			const belongs = tour.touristIds.includes(touristId);
+			if (shouldBelong === belongs) continue;
+
+			tour.touristIds = shouldBelong
+				? [...tour.touristIds, touristId]
+				: tour.touristIds.filter((id) => id !== touristId);
+			tour.updatedAt = now;
+		}
 	}
 
 	deleteTourist(id: string): void {

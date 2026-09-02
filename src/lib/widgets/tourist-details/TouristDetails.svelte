@@ -53,8 +53,8 @@
 			}))
 	);
 
-	function save(draft: TouristDraft): void {
-		if (tourist) store.updateTourist(tourist.id, draft);
+	function save(draft: TouristDraft, tourIds: string[]): void {
+		if (tourist) store.updateTourist(tourist.id, draft, tourIds);
 		formOpen = false;
 	}
 
@@ -99,6 +99,12 @@
 
 {#if formOpen && tourist}
 	<Modal title={m.edit_tourist_title()} onClose={() => (formOpen = false)}>
-		<TouristForm {tourist} onSubmit={save} onCancel={() => (formOpen = false)} />
+		<TouristForm
+			{tourist}
+			tours={store.data.tours}
+			tourIds={relatedTours.map((item) => item.id)}
+			onSubmit={save}
+			onCancel={() => (formOpen = false)}
+		/>
 	</Modal>
 {/if}

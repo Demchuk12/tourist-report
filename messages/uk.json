@@ -137,6 +137,8 @@
 	"placeholder_location": "Адреса або місце зустрічі",
 	"placeholder_guide": "Ім’я та контакт",
 	"placeholder_notes": "Додаткова інформація",
+	"field_tours": "Тури туриста",
+	"no_tours_to_assign": "Спочатку створіть тур у відповідному розділі.",
 	"no_tourists_to_assign": "Спочатку додайте туристів у відповідному розділі.",
 	"no_excursions_to_assign": "Спочатку додайте екскурсії у відповідному розділі.",
 	"field_price": "Ціна за особу",

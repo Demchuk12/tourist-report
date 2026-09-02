@@ -35,9 +35,15 @@
 		formOpen = true;
 	}
 
-	function save(draft: TouristDraft): void {
-		if (editing) store.updateTourist(editing.id, draft);
-		else store.createTourist(draft);
+	function tourIdsOf(touristId: string): string[] {
+		return store.data.tours
+			.filter((tour) => tour.touristIds.includes(touristId))
+			.map((tour) => tour.id);
+	}
+
+	function save(draft: TouristDraft, tourIds: string[]): void {
+		if (editing) store.updateTourist(editing.id, draft, tourIds);
+		else store.createTourist(draft, tourIds);
 		formOpen = false;
 	}
 
@@ -124,6 +130,12 @@
 		title={editing ? m.edit_tourist_title() : m.create_tourist_title()}
 		onClose={() => (formOpen = false)}
 	>
-		<TouristForm tourist={editing} onSubmit={save} onCancel={() => (formOpen = false)} />
+		<TouristForm
+			tourist={editing}
+			tours={store.data.tours}
+			tourIds={editing ? tourIdsOf(editing.id) : []}
+			onSubmit={save}
+			onCancel={() => (formOpen = false)}
+		/>
 	</Modal>
 {/if}

@@ -137,6 +137,8 @@
 	"placeholder_location": "Address or meeting point",
 	"placeholder_guide": "Name and contact",
 	"placeholder_notes": "Additional information",
+	"field_tours": "Tours of this tourist",
+	"no_tours_to_assign": "Create a tour in the corresponding section first.",
 	"no_tourists_to_assign": "Add tourists in the corresponding section first.",
 	"no_excursions_to_assign": "Add excursions in the corresponding section first.",
 	"field_price": "Price per person",
