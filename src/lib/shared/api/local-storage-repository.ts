@@ -1,6 +1,6 @@
 import {
 	createEmptyData,
-	isTourReportData,
+	parseTourReportData,
 	type TourReportData,
 	type TourReportRepository
 } from './tour-report-repository';
@@ -16,7 +16,7 @@ export class LocalStorageTourReportRepository implements TourReportRepository {
 			if (!stored) return createEmptyData();
 
 			const data: unknown = JSON.parse(stored);
-			return isTourReportData(data) ? data : createEmptyData();
+			return parseTourReportData(data) ?? createEmptyData();
 		} catch {
 			return createEmptyData();
 		}

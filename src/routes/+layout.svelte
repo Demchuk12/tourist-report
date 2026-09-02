@@ -8,6 +8,7 @@
 	import { setTourReportStore } from '$lib/features/tour-report/model/context';
 	import { TourReportStore } from '$lib/features/tour-report/model/tour-report-store.svelte';
 	import * as m from '$lib/paraglide/messages';
+	import { IndexedDbAttachmentRepository } from '$lib/shared/api/attachment-repository';
 	import { IndexedDbTourReportRepository } from '$lib/shared/api/indexed-db-repository';
 	import { entityRoute } from '$lib/shared/model/navigation';
 	import AppSidebar from '$lib/widgets/app-sidebar/AppSidebar.svelte';
@@ -15,7 +16,10 @@
 
 	let { children } = $props();
 
-	const store = new TourReportStore(new IndexedDbTourReportRepository());
+	const store = new TourReportStore(
+		new IndexedDbTourReportRepository(),
+		new IndexedDbAttachmentRepository()
+	);
 	setTourReportStore(store);
 
 	let searchOpen = $state(false);

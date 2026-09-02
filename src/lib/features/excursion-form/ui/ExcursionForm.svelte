@@ -20,13 +20,15 @@
 			date: excursion?.date ?? '',
 			time: excursion?.time ?? '',
 			guide: excursion?.guide ?? '',
-			notes: excursion?.notes ?? ''
+			notes: excursion?.notes ?? '',
+			price: excursion?.price ?? 0
 		}))
 	);
 
 	function submit(event: SubmitEvent): void {
 		event.preventDefault();
-		onSubmit($state.snapshot(form));
+		// An emptied number input binds as null, which must never reach the store.
+		onSubmit({ ...$state.snapshot(form), price: Number(form.price) || 0 });
 	}
 </script>
 
@@ -62,7 +64,12 @@
 			<input required type="time" bind:value={form.time} />
 		</label>
 
-		<label class="span-2">
+		<label>
+			<span>{m.field_price()}</span>
+			<input type="number" min="0" step="0.01" bind:value={form.price} placeholder="0" />
+		</label>
+
+		<label>
 			<span>{m.field_guide()}</span>
 			<input maxlength="120" bind:value={form.guide} placeholder={m.placeholder_guide()} />
 		</label>

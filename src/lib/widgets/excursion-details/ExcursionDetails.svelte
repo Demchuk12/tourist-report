@@ -2,10 +2,13 @@
 	import { goto } from '$app/navigation';
 	import type { ExcursionDraft } from '$lib/entities/excursion/model/types';
 	import ExcursionForm from '$lib/features/excursion-form/ui/ExcursionForm.svelte';
+	import ExcursionPayments from '$lib/features/excursion-payments/ui/ExcursionPayments.svelte';
+	import ExcursionReceipts from '$lib/features/excursion-receipts/ui/ExcursionReceipts.svelte';
 	import type { TourReportStore } from '$lib/features/tour-report/model/tour-report-store.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatDate, formatDateRange, formatDateTime } from '$lib/shared/lib/date';
+	import { formatAmount } from '$lib/shared/lib/number';
 	import { entityRoute } from '$lib/shared/model/navigation';
 	import DetailHeader from '$lib/shared/ui/DetailHeader.svelte';
 	import EmptyState from '$lib/shared/ui/EmptyState.svelte';
@@ -28,6 +31,7 @@
 					{ label: m.field_date(), value: formatDate(excursion.date, locale) },
 					{ label: m.field_time(), value: excursion.time },
 					{ label: m.field_guide(), value: excursion.guide },
+					{ label: m.field_price(), value: formatAmount(excursion.price, locale) },
 					{ label: m.field_notes(), value: excursion.notes, wide: true },
 					{ label: m.field_created_at(), value: formatDateTime(excursion.createdAt, locale) },
 					{ label: m.field_updated_at(), value: formatDateTime(excursion.updatedAt, locale) }
@@ -72,6 +76,16 @@
 			<article class="detail-panel">
 				<h2>{m.detail_information()}</h2>
 				<FieldList {fields} />
+			</article>
+
+			<article class="detail-panel">
+				<h2>{m.payments_title()}</h2>
+				<ExcursionPayments {store} {excursion} />
+			</article>
+
+			<article class="detail-panel">
+				<h2>{m.receipts_title()} <span class="count">{excursion.receipts.length}</span></h2>
+				<ExcursionReceipts {store} {excursion} />
 			</article>
 
 			<article class="detail-panel">

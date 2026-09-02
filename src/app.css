@@ -386,6 +386,12 @@ a {
 	color: var(--text-muted);
 }
 
+.card-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+}
+
 .detail-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));

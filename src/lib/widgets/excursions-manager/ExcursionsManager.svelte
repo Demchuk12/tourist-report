@@ -5,6 +5,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { formatDate } from '$lib/shared/lib/date';
+	import { formatAmount } from '$lib/shared/lib/number';
 	import { entityRoute } from '$lib/shared/model/navigation';
 	import EmptyState from '$lib/shared/ui/EmptyState.svelte';
 	import Modal from '$lib/shared/ui/Modal.svelte';
@@ -103,8 +104,18 @@
 						<div class="excursion-meta">
 							<span>◷ {excursion.time}</span>
 							{#if excursion.guide}<span>◎ {excursion.guide}</span>{/if}
+							{#if excursion.price > 0}
+								<span>◇ {m.field_price()}: {formatAmount(excursion.price, getLocale())}</span>
+							{/if}
 						</div>
-						<span class="usage">{m.used_in_tours({ count: usageCount(excursion.id) })}</span>
+						<div class="card-badges">
+							<span class="usage">{m.used_in_tours({ count: usageCount(excursion.id) })}</span>
+							{#if excursion.receipts.length}
+								<span class="usage"
+									>🧾 {m.receipts_count({ count: excursion.receipts.length })}</span
+								>
+							{/if}
+						</div>
 					</article>
 				{/each}
 			</div>
