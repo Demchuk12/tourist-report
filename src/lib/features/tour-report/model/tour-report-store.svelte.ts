@@ -1,3 +1,4 @@
+import type { ExcursionStatus } from '$lib/entities/excursion/model/status';
 import type { ExcursionDraft } from '$lib/entities/excursion/model/types';
 import type { TourDraft } from '$lib/entities/tour/model/types';
 import type { TouristDraft } from '$lib/entities/tourist/model/types';
@@ -125,6 +126,15 @@ export class TourReportStore {
 			size: blob.size,
 			createdAt: nowIso()
 		});
+		excursion.updatedAt = nowIso();
+		this.persist();
+	}
+
+	setExcursionStatus(id: string, status: ExcursionStatus): void {
+		const excursion = this.data.excursions.find((item) => item.id === id);
+		if (!excursion || excursion.status === status) return;
+
+		excursion.status = status;
 		excursion.updatedAt = nowIso();
 		this.persist();
 	}

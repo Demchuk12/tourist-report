@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import type { TourDraft, TourStatus } from '$lib/entities/tour/model/types';
 	import TourForm from '$lib/features/tour-form/ui/TourForm.svelte';
+	import TourSettlement from '$lib/features/tour-settlement/ui/TourSettlement.svelte';
 	import type { TourReportStore } from '$lib/features/tour-report/model/tour-report-store.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
@@ -83,6 +84,7 @@
 			backHref={entityRoute.tour.list}
 			eyebrow={m.nav_tours()}
 			title={tour.name}
+			action={{ href: entityRoute.tour.report(tour.id), label: `⎙ ${m.action_report_pdf()}` }}
 			onEdit={() => (formOpen = true)}
 			onDelete={remove}
 		/>
@@ -91,6 +93,11 @@
 			<article class="detail-panel">
 				<h2>{m.detail_information()}</h2>
 				<FieldList {fields} />
+			</article>
+
+			<article class="detail-panel settlement-panel">
+				<h2>{m.settlement_title()}</h2>
+				<TourSettlement {store} {tour} />
 			</article>
 
 			<article class="detail-panel">

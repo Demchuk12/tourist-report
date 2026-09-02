@@ -5,12 +5,15 @@
 		backHref,
 		eyebrow,
 		title,
+		action,
 		onEdit,
 		onDelete
 	}: {
 		backHref: string;
 		eyebrow: string;
 		title: string;
+		/** Optional primary link action, e.g. the printable report. */
+		action?: { href: string; label: string };
 		onEdit?: () => void;
 		onDelete?: () => void;
 	} = $props();
@@ -25,8 +28,11 @@
 			<h1>{title}</h1>
 		</div>
 
-		{#if onEdit || onDelete}
+		{#if action || onEdit || onDelete}
 			<div class="detail-actions">
+				{#if action}
+					<a class="button secondary" href={action.href}>{action.label}</a>
+				{/if}
 				{#if onEdit}
 					<button class="button ghost" type="button" onclick={onEdit}>✎ {m.action_edit()}</button>
 				{/if}

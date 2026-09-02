@@ -1,3 +1,4 @@
+import type { Attachment } from '$lib/entities/attachment/model/types';
 import type { Excursion } from '$lib/entities/excursion/model/types';
 import type { Tour } from '$lib/entities/tour/model/types';
 import type { Tourist } from '$lib/entities/tourist/model/types';
@@ -24,10 +25,18 @@ type StoredShape = {
 	excursions?: unknown;
 };
 
-/** Fields added after v1: older documents simply lack them. */
-type AddedExcursionFields = 'receipts' | 'price' | 'paidTouristIds';
-type LegacyExcursion = Omit<Excursion, AddedExcursionFields> &
-	Partial<Pick<Excursion, AddedExcursionFields>>;
+/**
+ * Stored records are only as trustworthy as whatever wrote them — an older
+ * build, a hand-seeded document, a partial write. Every field is therefore
+ * optional on the way in and defaulted on the way out.
+ */
+type Loose<T> = { [K in keyof T]?: unknown };
+
+const text = (value: unknown): string => (typeof value === 'string' ? value : '');
+const idList = (value: unknown): string[] =>
+	Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+const amount = (value: unknown): number =>
+	typeof value === 'number' && !Number.isNaN(value) ? value : 0;
 
 /**
  * Validates and upgrades whatever is on disk. Returns null when the value is
@@ -43,17 +52,69 @@ export function parseTourReportData(value: unknown): TourReportData | null {
 
 	return {
 		version: DATA_VERSION,
-		tours: data.tours as Tour[],
-		tourists: data.tourists as Tourist[],
-		// Purely additive fields are defaulted rather than version-branched, so a
-		// document written by any earlier build loads without a dedicated step.
-		excursions: (data.excursions as LegacyExcursion[]).map((excursion) => ({
-			...excursion,
-			receipts: excursion.receipts ?? [],
-			price: excursion.price ?? 0,
-			paidTouristIds: excursion.paidTouristIds ?? []
-		}))
+		tours: (data.tours as Loose<Tour>[]).map(normalizeTour),
+		tourists: (data.tourists as Loose<Tourist>[]).map(normalizeTourist),
+		excursions: (data.excursions as Loose<Excursion>[]).map(normalizeExcursion)
 	};
+}
+
+function normalizeTour(tour: Loose<Tour>): Tour {
+	return {
+		id: text(tour.id),
+		name: text(tour.name),
+		destination: text(tour.destination),
+		startDate: text(tour.startDate),
+		endDate: text(tour.endDate),
+		status: isTourStatus(tour.status) ? tour.status : 'planned',
+		// Missing relation arrays were the cause of a blank tour page: every
+		// consumer calls .includes() on these without checking.
+		touristIds: idList(tour.touristIds),
+		excursionIds: idList(tour.excursionIds),
+		notes: text(tour.notes),
+		createdAt: text(tour.createdAt),
+		updatedAt: text(tour.updatedAt)
+	};
+}
+
+function normalizeTourist(tourist: Loose<Tourist>): Tourist {
+	return {
+		id: text(tourist.id),
+		fullName: text(tourist.fullName),
+		phone: text(tourist.phone),
+		email: text(tourist.email),
+		documentNumber: text(tourist.documentNumber),
+		notes: text(tourist.notes),
+		createdAt: text(tourist.createdAt),
+		updatedAt: text(tourist.updatedAt)
+	};
+}
+
+function normalizeExcursion(excursion: Loose<Excursion>): Excursion {
+	return {
+		id: text(excursion.id),
+		title: text(excursion.title),
+		location: text(excursion.location),
+		date: text(excursion.date),
+		time: text(excursion.time),
+		guide: text(excursion.guide),
+		notes: text(excursion.notes),
+		price: amount(excursion.price),
+		// Literals rather than imported constants: `shared` must not depend on
+		// `entities` at runtime. The types still check the values.
+		status: isExcursionStatus(excursion.status) ? excursion.status : 'pending',
+		paidTouristIds: idList(excursion.paidTouristIds),
+		receipts: Array.isArray(excursion.receipts) ? (excursion.receipts as Attachment[]) : [],
+		createdAt: text(excursion.createdAt),
+		updatedAt: text(excursion.updatedAt)
+	};
+}
+
+function isTourStatus(value: unknown): value is Tour['status'] {
+	return value === 'planned' || value === 'active' || value === 'completed';
+}
+
+function isExcursionStatus(value: unknown): value is Excursion['status'] {
+	return value === 'pending' || value === 'completed' || value === 'cancelled';
 }
 
 export function createEmptyData(): TourReportData {

@@ -1,5 +1,10 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import {
+		EXCURSION_STATUS_FALLBACK,
+		EXCURSION_STATUSES,
+		excursionStatusLabels
+	} from '$lib/entities/excursion/model/status';
 	import type { Excursion, ExcursionDraft } from '$lib/entities/excursion/model/types';
 	import * as m from '$lib/paraglide/messages';
 
@@ -21,7 +26,8 @@
 			time: excursion?.time ?? '',
 			guide: excursion?.guide ?? '',
 			notes: excursion?.notes ?? '',
-			price: excursion?.price ?? 0
+			price: excursion?.price ?? 0,
+			status: excursion?.status ?? EXCURSION_STATUS_FALLBACK
 		}))
 	);
 
@@ -67,6 +73,15 @@
 		<label>
 			<span>{m.field_price()}</span>
 			<input type="number" min="0" step="0.01" bind:value={form.price} placeholder="0" />
+		</label>
+
+		<label>
+			<span>{m.field_status()}</span>
+			<select bind:value={form.status}>
+				{#each EXCURSION_STATUSES as status (status)}
+					<option value={status}>{excursionStatusLabels[status]()}</option>
+				{/each}
+			</select>
 		</label>
 
 		<label>

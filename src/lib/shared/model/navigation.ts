@@ -23,11 +23,12 @@ export const sectionHref: Record<AppSection, string> = {
 export const entityRoute: Record<
 	EntityKind,
 	{ section: AppSection; list: string; detail: (id: string) => string }
-> = {
+> & { tour: { report: (id: string) => string } } = {
 	tour: {
 		section: 'tours',
 		list: sectionHref.tours,
-		detail: (id) => resolve('/tours/[id]', { id })
+		detail: (id) => resolve('/tours/[id]', { id }),
+		report: (id) => resolve('/tours/[id]/report', { id })
 	},
 	tourist: {
 		section: 'tourists',

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { excursionStatusLabels } from '$lib/entities/excursion/model/status';
 	import type { Excursion, ExcursionDraft } from '$lib/entities/excursion/model/types';
 	import ExcursionForm from '$lib/features/excursion-form/ui/ExcursionForm.svelte';
 	import type { TourReportStore } from '$lib/features/tour-report/model/tour-report-store.svelte';
@@ -81,6 +82,9 @@
 					<article class="entity-card excursion-card">
 						<div class="card-topline">
 							<span class="date-chip">{formatDate(excursion.date, getLocale())}</span>
+							<span class="excursion-status {excursion.status}"
+								>{excursionStatusLabels[excursion.status]()}</span
+							>
 							<div class="card-actions">
 								<button
 									type="button"

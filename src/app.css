@@ -329,6 +329,31 @@ a {
 	color: #64748b;
 }
 
+.excursion-status {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.7rem;
+	padding: 0.25rem 0.55rem;
+	border-radius: 999px;
+	font-size: 0.66rem;
+	font-weight: 750;
+}
+
+.excursion-status.pending {
+	background: #e0f2fe;
+	color: #0369a1;
+}
+
+.excursion-status.completed {
+	background: #d1fae5;
+	color: #047857;
+}
+
+.excursion-status.cancelled {
+	background: #ffe4e6;
+	color: #9f1239;
+}
+
 .card-metrics {
 	display: flex;
 	gap: 1rem;
@@ -407,8 +432,9 @@ a {
 	background: white;
 }
 
-/* The information panel carries the most content, so it spans the full row. */
-.detail-panel:first-child {
+/* The information panel and the settlement table both need the full row. */
+.detail-panel:first-child,
+.detail-panel.settlement-panel {
 	grid-column: 1 / -1;
 }
 
@@ -602,6 +628,39 @@ form legend {
 
 	.section-heading {
 		align-items: flex-start;
+	}
+}
+
+@media print {
+	@page {
+		size: A4;
+		margin: 14mm;
+	}
+
+	html,
+	body {
+		background: white;
+	}
+
+	/* Sidebar, bottom navigation and the install prompt are app chrome, not report content. */
+	aside,
+	.pwa-prompt {
+		display: none !important;
+	}
+
+	.app-shell {
+		display: block;
+		min-height: 0;
+	}
+
+	.app-content {
+		padding: 0;
+	}
+
+	/* Chrome and Safari drop background colours in print unless told otherwise. */
+	* {
+		print-color-adjust: exact;
+		-webkit-print-color-adjust: exact;
 	}
 }
 

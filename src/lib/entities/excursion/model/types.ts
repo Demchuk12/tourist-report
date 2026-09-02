@@ -1,4 +1,5 @@
 import type { Attachment } from '$lib/entities/attachment/model/types';
+import type { ExcursionStatus } from '$lib/entities/excursion/model/status';
 
 export type Excursion = {
 	id: string;
@@ -8,6 +9,8 @@ export type Excursion = {
 	time: string;
 	guide: string;
 	notes: string;
+	/** Set by hand — it is never derived from the date. */
+	status: ExcursionStatus;
 	/** Price per participant. */
 	price: number;
 	/**
@@ -23,5 +26,5 @@ export type Excursion = {
 
 export type ExcursionDraft = Pick<
 	Excursion,
-	'title' | 'location' | 'date' | 'time' | 'guide' | 'notes' | 'price'
+	'title' | 'location' | 'date' | 'time' | 'guide' | 'notes' | 'price' | 'status'
 >;

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { EXCURSION_STATUSES, excursionStatusLabels } from '$lib/entities/excursion/model/status';
 	import type { ExcursionDraft } from '$lib/entities/excursion/model/types';
 	import ExcursionForm from '$lib/features/excursion-form/ui/ExcursionForm.svelte';
 	import ExcursionPayments from '$lib/features/excursion-payments/ui/ExcursionPayments.svelte';
@@ -75,6 +76,21 @@
 		<div class="detail-grid">
 			<article class="detail-panel">
 				<h2>{m.detail_information()}</h2>
+
+				<div class="status-switch" role="group" aria-label={m.field_status()}>
+					{#each EXCURSION_STATUSES as status (status)}
+						<button
+							class="status-option {status}"
+							class:selected={excursion.status === status}
+							type="button"
+							aria-pressed={excursion.status === status}
+							onclick={() => store.setExcursionStatus(excursion.id, status)}
+						>
+							{excursionStatusLabels[status]()}
+						</button>
+					{/each}
+				</div>
+
 				<FieldList {fields} />
 			</article>
 
@@ -109,3 +125,59 @@
 		<ExcursionForm {excursion} onSubmit={save} onCancel={() => (formOpen = false)} />
 	</Modal>
 {/if}
+
+<style>
+	/* One tap to record what happened, without opening the edit form. */
+	.status-switch {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin-bottom: 1.35rem;
+	}
+
+	.status-option {
+		min-height: 2.3rem;
+		padding: 0.4rem 0.8rem;
+		border: 1px solid var(--border-strong);
+		border-radius: 999px;
+		background: white;
+		color: var(--text-muted);
+		font: inherit;
+		font-size: 0.74rem;
+		font-weight: 750;
+		cursor: pointer;
+		transition:
+			background 150ms ease,
+			border-color 150ms ease,
+			color 150ms ease;
+	}
+
+	.status-option:hover {
+		border-color: var(--brand);
+		color: var(--brand-dark);
+	}
+
+	.status-option.selected.completed {
+		border-color: #a7f3d0;
+		background: #d1fae5;
+		color: #047857;
+	}
+
+	.status-option.selected.pending {
+		border-color: #bae6fd;
+		background: #e0f2fe;
+		color: #0369a1;
+	}
+
+	.status-option.selected.cancelled {
+		border-color: #fecdd3;
+		background: #ffe4e6;
+		color: #9f1239;
+	}
+
+	@media (max-width: 560px) {
+		.status-option {
+			flex: 1;
+		}
+	}
+</style>
