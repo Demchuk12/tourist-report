@@ -51,15 +51,15 @@
 			}))
 	);
 
-	function save(draft: ExcursionDraft): void {
-		if (excursion) store.updateExcursion(excursion.id, draft);
-		formOpen = false;
+	async function save(draft: ExcursionDraft): Promise<void> {
+		if (!excursion) return;
+		if (await store.updateExcursion(excursion.id, draft)) formOpen = false;
 	}
 
-	function remove(): void {
+	// Navigating away is the confirmation, so it waits for the request to succeed.
+	async function remove(): Promise<void> {
 		if (!excursion || !confirm(m.confirm_delete_excursion({ name: excursion.title }))) return;
-		store.deleteExcursion(excursion.id);
-		void goto(entityRoute.excursion.list);
+		if (await store.deleteExcursion(excursion.id)) void goto(entityRoute.excursion.list);
 	}
 </script>
 
@@ -71,6 +71,7 @@
 			title={excursion.title}
 			onEdit={() => (formOpen = true)}
 			onDelete={remove}
+			busy={store.isSavingExcursion(excursion.id)}
 		/>
 
 		<div class="detail-grid">
@@ -84,6 +85,7 @@
 							class:selected={excursion.status === status}
 							type="button"
 							aria-pressed={excursion.status === status}
+							disabled={store.isSavingExcursion(excursion.id)}
 							onclick={() => store.setExcursionStatus(excursion.id, status)}
 						>
 							{excursionStatusLabels[status]()}
@@ -122,7 +124,12 @@
 
 {#if formOpen && excursion}
 	<Modal title={m.edit_excursion_title()} onClose={() => (formOpen = false)}>
-		<ExcursionForm {excursion} onSubmit={save} onCancel={() => (formOpen = false)} />
+		<ExcursionForm
+			{excursion}
+			onSubmit={save}
+			onCancel={() => (formOpen = false)}
+			submitting={store.isSavingExcursion(excursion.id)}
+		/>
 	</Modal>
 {/if}
 

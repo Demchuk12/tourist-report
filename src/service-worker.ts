@@ -34,6 +34,11 @@ worker.addEventListener('fetch', (event) => {
 	const url = new URL(event.request.url);
 	if (url.origin !== worker.location.origin) return;
 
+	// API traffic never enters the cache. A cross-origin API is already skipped
+	// above, but a same-origin deployment (`/api`) would otherwise put one
+	// account's authenticated responses into a cache the next account reads.
+	if (url.pathname.startsWith('/api/') || event.request.headers.has('Authorization')) return;
+
 	event.respondWith(
 		(async () => {
 			const cache = await caches.open(CACHE_NAME);

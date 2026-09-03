@@ -7,7 +7,8 @@
 		title,
 		action,
 		onEdit,
-		onDelete
+		onDelete,
+		busy = false
 	}: {
 		backHref: string;
 		eyebrow: string;
@@ -16,6 +17,8 @@
 		action?: { href: string; label: string };
 		onEdit?: () => void;
 		onDelete?: () => void;
+		/** A request touching this entity is in flight — its actions are locked meanwhile. */
+		busy?: boolean;
 	} = $props();
 </script>
 
@@ -34,12 +37,19 @@
 					<a class="button secondary" href={action.href}>{action.label}</a>
 				{/if}
 				{#if onEdit}
-					<button class="button ghost" type="button" onclick={onEdit}>✎ {m.action_edit()}</button>
+					<button class="button ghost" type="button" disabled={busy} onclick={onEdit}
+						>✎ {m.action_edit()}</button
+					>
 				{/if}
 				{#if onDelete}
-					<button class="button ghost danger" type="button" onclick={onDelete}
-						>× {m.action_delete()}</button
-					>
+					<button class="button ghost danger" type="button" disabled={busy} onclick={onDelete}>
+						{#if busy}
+							<span class="button-spinner" aria-hidden="true"></span>
+							{m.action_saving()}
+						{:else}
+							× {m.action_delete()}
+						{/if}
+					</button>
 				{/if}
 			</div>
 		{/if}

@@ -66,15 +66,15 @@
 			}))
 	);
 
-	function save(draft: TourDraft): void {
-		if (tour) store.updateTour(tour.id, draft);
-		formOpen = false;
+	async function save(draft: TourDraft): Promise<void> {
+		if (!tour) return;
+		if (await store.updateTour(tour.id, draft)) formOpen = false;
 	}
 
-	function remove(): void {
+	// Navigating away is the confirmation, so it waits for the request to succeed.
+	async function remove(): Promise<void> {
 		if (!tour || !confirm(m.confirm_delete_tour({ name: tour.name }))) return;
-		store.deleteTour(tour.id);
-		void goto(entityRoute.tour.list);
+		if (await store.deleteTour(tour.id)) void goto(entityRoute.tour.list);
 	}
 </script>
 
@@ -87,6 +87,7 @@
 			action={{ href: entityRoute.tour.report(tour.id), label: `⎙ ${m.action_report_pdf()}` }}
 			onEdit={() => (formOpen = true)}
 			onDelete={remove}
+			busy={store.isSavingTour(tour.id)}
 		/>
 
 		<div class="detail-grid">
@@ -129,6 +130,7 @@
 			excursions={store.data.excursions}
 			onSubmit={save}
 			onCancel={() => (formOpen = false)}
+			submitting={store.isSavingTour(tour.id)}
 		/>
 	</Modal>
 {/if}

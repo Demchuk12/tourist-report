@@ -11,7 +11,8 @@
 		tours,
 		tourIds = [],
 		onSubmit,
-		onCancel
+		onCancel,
+		submitting = false
 	}: {
 		tourist: Tourist | null;
 		tours: Tour[];
@@ -19,6 +20,8 @@
 		tourIds?: string[];
 		onSubmit: (draft: TouristDraft, tourIds: string[]) => void;
 		onCancel: () => void;
+		/** The save request is in flight — the form stays open and locked until it settles. */
+		submitting?: boolean;
 	} = $props();
 
 	const locale = getLocale();
@@ -44,6 +47,8 @@
 
 	function submit(event: SubmitEvent): void {
 		event.preventDefault();
+		if (submitting) return;
+
 		onSubmit($state.snapshot(form), $state.snapshot(selectedTourIds));
 	}
 </script>
@@ -107,7 +112,16 @@
 	</label>
 
 	<div class="form-actions">
-		<button class="button ghost" type="button" onclick={onCancel}>{m.action_cancel()}</button>
-		<button class="button primary" type="submit">{m.action_save()}</button>
+		<button class="button ghost" type="button" disabled={submitting} onclick={onCancel}
+			>{m.action_cancel()}</button
+		>
+		<button class="button primary" type="submit" disabled={submitting}>
+			{#if submitting}
+				<span class="button-spinner" aria-hidden="true"></span>
+				{m.action_saving()}
+			{:else}
+				{m.action_save()}
+			{/if}
+		</button>
 	</div>
 </form>

@@ -1,6 +1,6 @@
 import type { Excursion } from '$lib/entities/excursion/model/types';
 import type { Tourist } from '$lib/entities/tourist/model/types';
-import type { TourReportData } from '$lib/shared/api/tour-report-repository';
+import type { TourReportData } from '$lib/shared/api/tour-report-data';
 
 export type ExcursionParticipant = {
 	tourist: Tourist;

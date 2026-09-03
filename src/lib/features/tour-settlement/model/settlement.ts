@@ -1,7 +1,7 @@
 import { isBillable } from '$lib/entities/excursion/model/status';
 import type { Excursion } from '$lib/entities/excursion/model/types';
 import type { Tour } from '$lib/entities/tour/model/types';
-import type { TourReportData } from '$lib/shared/api/tour-report-repository';
+import type { TourReportData } from '$lib/shared/api/tour-report-data';
 
 export type SettlementLine = {
 	excursion: Excursion;

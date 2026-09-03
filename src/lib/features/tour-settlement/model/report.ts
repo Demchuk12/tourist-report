@@ -6,7 +6,7 @@ import {
 	calculateTourSettlement,
 	type SettlementLine
 } from '$lib/features/tour-settlement/model/settlement';
-import type { TourReportData } from '$lib/shared/api/tour-report-repository';
+import type { TourReportData } from '$lib/shared/api/tour-report-data';
 
 export type ReportPaymentLine = SettlementLine & {
 	/** Tourists of this tour only, split by whether they have paid. */

@@ -53,15 +53,15 @@
 			}))
 	);
 
-	function save(draft: TouristDraft, tourIds: string[]): void {
-		if (tourist) store.updateTourist(tourist.id, draft, tourIds);
-		formOpen = false;
+	async function save(draft: TouristDraft, tourIds: string[]): Promise<void> {
+		if (!tourist) return;
+		if (await store.updateTourist(tourist.id, draft, tourIds)) formOpen = false;
 	}
 
-	function remove(): void {
+	// Navigating away is the confirmation, so it waits for the request to succeed.
+	async function remove(): Promise<void> {
 		if (!tourist || !confirm(m.confirm_delete_tourist({ name: tourist.fullName }))) return;
-		store.deleteTourist(tourist.id);
-		void goto(entityRoute.tourist.list);
+		if (await store.deleteTourist(tourist.id)) void goto(entityRoute.tourist.list);
 	}
 </script>
 
@@ -73,6 +73,7 @@
 			title={tourist.fullName}
 			onEdit={() => (formOpen = true)}
 			onDelete={remove}
+			busy={store.isSavingTourist(tourist.id)}
 		/>
 
 		<div class="detail-grid">
@@ -105,6 +106,7 @@
 			tourIds={relatedTours.map((item) => item.id)}
 			onSubmit={save}
 			onCancel={() => (formOpen = false)}
+			submitting={store.isSavingTourist(tourist.id)}
 		/>
 	</Modal>
 {/if}

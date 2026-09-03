@@ -1,15 +1,27 @@
 <script lang="ts">
 	import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
+	import type { User, UserRole } from '$lib/entities/user/model/types';
 	import * as m from '$lib/paraglide/messages';
 	import { isSectionActive, sectionHref, type AppSection } from '$lib/shared/model/navigation';
 
 	let {
 		pathname,
-		onOpenSearch
+		user,
+		onOpenSearch,
+		onSignOut
 	}: {
 		pathname: string;
+		user: User | null;
 		onOpenSearch: () => void;
+		onSignOut: () => void;
 	} = $props();
+
+	const roleLabels: Record<UserRole, () => string> = {
+		admin: m.role_admin,
+		leader: m.role_leader
+	};
+
+	const accountName = $derived(user?.fullName?.trim() || user?.email || '');
 
 	// Resolved on the client only, so SSR output stays stable across platforms.
 	let shortcutHint = $state('Ctrl K');
@@ -58,6 +70,25 @@
 	</nav>
 
 	<div class="sidebar-footer">
+		{#if user}
+			<div class="account">
+				<span class="account-avatar" aria-hidden="true"
+					>{accountName.slice(0, 1).toUpperCase()}</span
+				>
+				<div class="account-body">
+					<strong title={user.email}>{accountName}</strong>
+					<small>{roleLabels[user.role]?.() ?? user.role}</small>
+				</div>
+				<button
+					class="sign-out"
+					type="button"
+					aria-label={m.auth_sign_out()}
+					title={m.auth_sign_out()}
+					onclick={onSignOut}>⏻</button
+				>
+			</div>
+		{/if}
+
 		<p>{m.interface_language()}</p>
 		<LanguageSwitcher />
 	</div>
@@ -219,6 +250,71 @@
 		border-top: 1px solid var(--border);
 	}
 
+	.account {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		margin-bottom: 1rem;
+	}
+
+	.account-avatar {
+		display: grid;
+		width: 2.1rem;
+		height: 2.1rem;
+		flex: 0 0 auto;
+		place-items: center;
+		border-radius: 50%;
+		background: var(--brand-soft);
+		color: var(--brand-dark);
+		font-size: 0.8rem;
+		font-weight: 800;
+	}
+
+	.account-body {
+		display: grid;
+		min-width: 0;
+		flex: 1;
+		gap: 0.1rem;
+	}
+
+	.account-body strong {
+		overflow: hidden;
+		font-size: 0.8rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.account-body small {
+		color: var(--text-muted);
+		font-size: 0.66rem;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.sign-out {
+		display: grid;
+		width: 2.1rem;
+		height: 2.1rem;
+		flex: 0 0 auto;
+		place-items: center;
+		border: 1px solid var(--border);
+		border-radius: 0.65rem;
+		background: white;
+		color: var(--text-muted);
+		font: inherit;
+		font-size: 0.9rem;
+		cursor: pointer;
+		transition:
+			border-color 150ms ease,
+			color 150ms ease;
+	}
+
+	.sign-out:hover {
+		border-color: #fecdd3;
+		color: var(--danger);
+	}
+
 	.sidebar-footer p {
 		margin: 0 0 0.65rem;
 		color: var(--text-muted);
@@ -274,14 +370,24 @@
 		}
 
 		.brand-block small,
-		.sidebar-footer p {
+		.sidebar-footer p,
+		/* The top bar has no room for a name — the avatar carries the identity. */
+		.account-body {
 			display: none;
 		}
 
 		.sidebar-footer {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
 			margin: 0;
 			padding: 0;
 			border: 0;
+		}
+
+		.account {
+			margin: 0;
+			gap: 0.4rem;
 		}
 
 		nav {

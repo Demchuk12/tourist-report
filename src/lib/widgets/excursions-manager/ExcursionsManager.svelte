@@ -39,15 +39,17 @@
 		formOpen = true;
 	}
 
-	function save(draft: ExcursionDraft): void {
-		if (editing) store.updateExcursion(editing.id, draft);
-		else store.createExcursion(draft);
-		formOpen = false;
+	// The modal stays open when the request fails, so the typed values are not lost.
+	async function save(draft: ExcursionDraft): Promise<void> {
+		const saved = editing
+			? await store.updateExcursion(editing.id, draft)
+			: await store.createExcursion(draft);
+		if (saved) formOpen = false;
 	}
 
-	function remove(excursion: Excursion): void {
-		if (confirm(m.confirm_delete_excursion({ name: excursion.title })))
-			store.deleteExcursion(excursion.id);
+	async function remove(excursion: Excursion): Promise<void> {
+		if (!confirm(m.confirm_delete_excursion({ name: excursion.title }))) return;
+		await store.deleteExcursion(excursion.id);
 	}
 </script>
 
@@ -89,12 +91,14 @@
 								<button
 									type="button"
 									aria-label={m.action_edit()}
+									disabled={store.isSavingExcursion(excursion.id)}
 									onclick={() => openEdit(excursion)}>✎</button
 								>
 								<button
 									class="danger"
 									type="button"
 									aria-label={m.action_delete()}
+									disabled={store.isSavingExcursion(excursion.id)}
 									onclick={() => remove(excursion)}>×</button
 								>
 							</div>
@@ -142,6 +146,11 @@
 		title={editing ? m.edit_excursion_title() : m.create_excursion_title()}
 		onClose={() => (formOpen = false)}
 	>
-		<ExcursionForm excursion={editing} onSubmit={save} onCancel={() => (formOpen = false)} />
+		<ExcursionForm
+			excursion={editing}
+			onSubmit={save}
+			onCancel={() => (formOpen = false)}
+			submitting={store.isSavingExcursion(editing?.id)}
+		/>
 	</Modal>
 {/if}

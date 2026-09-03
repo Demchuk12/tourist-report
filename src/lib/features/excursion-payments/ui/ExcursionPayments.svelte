@@ -35,6 +35,7 @@
 
 	<ul class="payment-list">
 		{#each participants as participant (participant.tourist.id)}
+			{@const saving = store.isSavingPayment(excursion.id, participant.tourist.id)}
 			<li>
 				<a class="participant" href={entityRoute.tourist.detail(participant.tourist.id)}>
 					<span class="participant-body">
@@ -48,9 +49,14 @@
 					class:paid={participant.paid}
 					type="button"
 					aria-pressed={participant.paid}
+					aria-busy={saving}
+					disabled={saving}
 					onclick={() =>
 						store.setExcursionPayment(excursion.id, participant.tourist.id, !participant.paid)}
 				>
+					{#if saving}
+						<span class="button-spinner" aria-hidden="true"></span>
+					{/if}
 					{participant.paid ? `✓ ${m.payment_paid()}` : m.payment_unpaid()}
 				</button>
 			</li>
@@ -131,6 +137,10 @@
 	}
 
 	.payment-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
 		flex: 0 0 auto;
 		min-height: 2.2rem;
 		padding: 0.35rem 0.75rem;
@@ -151,6 +161,11 @@
 	.payment-toggle:hover {
 		border-color: var(--brand);
 		color: var(--brand-dark);
+	}
+
+	.payment-toggle:disabled {
+		cursor: progress;
+		opacity: 0.7;
 	}
 
 	.payment-toggle.paid {

@@ -11,11 +11,14 @@
 	let {
 		excursion,
 		onSubmit,
-		onCancel
+		onCancel,
+		submitting = false
 	}: {
 		excursion: Excursion | null;
 		onSubmit: (draft: ExcursionDraft) => void;
 		onCancel: () => void;
+		/** The save request is in flight — the form stays open and locked until it settles. */
+		submitting?: boolean;
 	} = $props();
 
 	let form = $state<ExcursionDraft>(
@@ -97,7 +100,16 @@
 	</label>
 
 	<div class="form-actions">
-		<button class="button ghost" type="button" onclick={onCancel}>{m.action_cancel()}</button>
-		<button class="button primary" type="submit">{m.action_save()}</button>
+		<button class="button ghost" type="button" disabled={submitting} onclick={onCancel}
+			>{m.action_cancel()}</button
+		>
+		<button class="button primary" type="submit" disabled={submitting}>
+			{#if submitting}
+				<span class="button-spinner" aria-hidden="true"></span>
+				{m.action_saving()}
+			{:else}
+				{m.action_save()}
+			{/if}
+		</button>
 	</div>
 </form>

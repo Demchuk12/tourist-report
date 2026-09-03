@@ -39,14 +39,17 @@
 		formOpen = true;
 	}
 
-	function save(draft: TourDraft): void {
-		if (editing) store.updateTour(editing.id, draft);
-		else store.createTour(draft);
-		formOpen = false;
+	// The modal stays open when the request fails, so the typed values are not lost.
+	async function save(draft: TourDraft): Promise<void> {
+		const saved = editing
+			? await store.updateTour(editing.id, draft)
+			: await store.createTour(draft);
+		if (saved) formOpen = false;
 	}
 
-	function remove(tour: Tour): void {
-		if (confirm(m.confirm_delete_tour({ name: tour.name }))) store.deleteTour(tour.id);
+	async function remove(tour: Tour): Promise<void> {
+		if (!confirm(m.confirm_delete_tour({ name: tour.name }))) return;
+		await store.deleteTour(tour.id);
 	}
 </script>
 
@@ -78,13 +81,17 @@
 						<div class="card-topline">
 							<span class="status {tour.status}">{statusLabels[tour.status]()}</span>
 							<div class="card-actions">
-								<button type="button" aria-label={m.action_edit()} onclick={() => openEdit(tour)}
-									>✎</button
+								<button
+									type="button"
+									aria-label={m.action_edit()}
+									disabled={store.isSavingTour(tour.id)}
+									onclick={() => openEdit(tour)}>✎</button
 								>
 								<button
 									class="danger"
 									type="button"
 									aria-label={m.action_delete()}
+									disabled={store.isSavingTour(tour.id)}
 									onclick={() => remove(tour)}>×</button
 								>
 							</div>
@@ -130,6 +137,7 @@
 			excursions={store.data.excursions}
 			onSubmit={save}
 			onCancel={() => (formOpen = false)}
+			submitting={store.isSavingTour(editing?.id)}
 		/>
 	</Modal>
 {/if}

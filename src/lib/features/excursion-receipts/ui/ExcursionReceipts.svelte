@@ -19,7 +19,7 @@
 	const locale = getLocale();
 
 	let fileInput = $state<HTMLInputElement | null>(null);
-	let busy = $state(false);
+	/** Client-side rejections stay next to the button; server failures go to the toasts. */
 	let error = $state('');
 	let opened = $state<string | null>(null);
 
@@ -56,6 +56,8 @@
 		for (const url of Object.values(previews)) URL.revokeObjectURL(url);
 	});
 
+	const uploading = $derived(store.isUploadingReceipt(excursion.id));
+
 	const openedReceipt = $derived(
 		excursion.receipts.find((receipt) => receipt.id === opened) ?? null
 	);
@@ -67,25 +69,20 @@
 		if (!files.length) return;
 
 		error = '';
-		busy = true;
 
-		try {
-			for (const file of files) {
-				if (!isImageFile(file)) {
-					error = m.receipts_error_type();
-					continue;
-				}
-				if (file.size > MAX_SOURCE_BYTES) {
-					error = m.receipts_error_size({ size: formatBytes(MAX_SOURCE_BYTES) });
-					continue;
-				}
-
-				await store.addExcursionReceipt(excursion.id, file);
+		// Sequential rather than parallel: a phone uploading six photos at once
+		// is how a slow connection turns into six timeouts.
+		for (const file of files) {
+			if (!isImageFile(file)) {
+				error = m.receipts_error_type();
+				continue;
 			}
-		} catch {
-			error = m.receipts_error_save();
-		} finally {
-			busy = false;
+			if (file.size > MAX_SOURCE_BYTES) {
+				error = m.receipts_error_size({ size: formatBytes(MAX_SOURCE_BYTES) });
+				continue;
+			}
+
+			await store.addExcursionReceipt(excursion.id, file);
 		}
 	}
 
@@ -101,10 +98,15 @@
 		<button
 			class="button secondary"
 			type="button"
-			disabled={busy}
+			disabled={uploading}
 			onclick={() => fileInput?.click()}
 		>
-			{busy ? m.receipts_uploading() : `＋ ${m.action_add_receipt()}`}
+			{#if uploading}
+				<span class="button-spinner" aria-hidden="true"></span>
+				{m.receipts_uploading()}
+			{:else}
+				＋ {m.action_add_receipt()}
+			{/if}
 		</button>
 	</div>
 
@@ -148,7 +150,9 @@
 						class="receipt-delete"
 						type="button"
 						aria-label={m.action_delete()}
-						onclick={() => remove(receipt.id)}>×</button
+						disabled={store.isDeletingReceipt(receipt.id)}
+						onclick={() => remove(receipt.id)}
+						>{store.isDeletingReceipt(receipt.id) ? '…' : '×'}</button
 					>
 				</li>
 			{/each}

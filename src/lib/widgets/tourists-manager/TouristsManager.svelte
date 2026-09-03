@@ -41,15 +41,17 @@
 			.map((tour) => tour.id);
 	}
 
-	function save(draft: TouristDraft, tourIds: string[]): void {
-		if (editing) store.updateTourist(editing.id, draft, tourIds);
-		else store.createTourist(draft, tourIds);
-		formOpen = false;
+	// The modal stays open when the request fails, so the typed values are not lost.
+	async function save(draft: TouristDraft, tourIds: string[]): Promise<void> {
+		const saved = editing
+			? await store.updateTourist(editing.id, draft, tourIds)
+			: await store.createTourist(draft, tourIds);
+		if (saved) formOpen = false;
 	}
 
-	function remove(tourist: Tourist): void {
-		if (confirm(m.confirm_delete_tourist({ name: tourist.fullName })))
-			store.deleteTourist(tourist.id);
+	async function remove(tourist: Tourist): Promise<void> {
+		if (!confirm(m.confirm_delete_tourist({ name: tourist.fullName }))) return;
+		await store.deleteTourist(tourist.id);
 	}
 </script>
 
@@ -85,13 +87,17 @@
 						<div class="card-topline">
 							<span class="avatar">{tourist.fullName.slice(0, 1).toUpperCase()}</span>
 							<div class="card-actions">
-								<button type="button" aria-label={m.action_edit()} onclick={() => openEdit(tourist)}
-									>✎</button
+								<button
+									type="button"
+									aria-label={m.action_edit()}
+									disabled={store.isSavingTourist(tourist.id)}
+									onclick={() => openEdit(tourist)}>✎</button
 								>
 								<button
 									class="danger"
 									type="button"
 									aria-label={m.action_delete()}
+									disabled={store.isSavingTourist(tourist.id)}
 									onclick={() => remove(tourist)}>×</button
 								>
 							</div>
@@ -136,6 +142,7 @@
 			tourIds={editing ? tourIdsOf(editing.id) : []}
 			onSubmit={save}
 			onCancel={() => (formOpen = false)}
+			submitting={store.isSavingTourist(editing?.id)}
 		/>
 	</Modal>
 {/if}

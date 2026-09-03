@@ -3,62 +3,44 @@ import type { Excursion } from '$lib/entities/excursion/model/types';
 import type { Tour } from '$lib/entities/tour/model/types';
 import type { Tourist } from '$lib/entities/tourist/model/types';
 
-/** Bump when the stored shape changes, and extend `parseTourReportData` to migrate. */
-export const DATA_VERSION = 2;
-
+/**
+ * The three collections the API serves, held together as one document because
+ * the dashboard, calendar, search and settlement all read across entity types.
+ */
 export type TourReportData = {
-	version: typeof DATA_VERSION;
 	tours: Tour[];
 	tourists: Tourist[];
 	excursions: Excursion[];
 };
 
-export interface TourReportRepository {
-	load(): Promise<TourReportData>;
-	save(data: TourReportData): Promise<void>;
+export function createEmptyData(): TourReportData {
+	return { tours: [], tourists: [], excursions: [] };
 }
 
-type StoredShape = {
-	version?: unknown;
-	tours?: unknown;
-	tourists?: unknown;
-	excursions?: unknown;
-};
-
 /**
- * Stored records are only as trustworthy as whatever wrote them — an older
- * build, a hand-seeded document, a partial write. Every field is therefore
- * optional on the way in and defaulted on the way out.
+ * Responses are only as trustworthy as the deployment behind them — an older
+ * API build, a partially migrated record, a proxy that mangles a field. Every
+ * property is therefore optional on the way in and defaulted on the way out,
+ * so a missing array can never crash a `.includes()` deep in a widget.
  */
 type Loose<T> = { [K in keyof T]?: unknown };
 
 const text = (value: unknown): string => (typeof value === 'string' ? value : '');
 const idList = (value: unknown): string[] =>
 	Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
-const amount = (value: unknown): number =>
-	typeof value === 'number' && !Number.isNaN(value) ? value : 0;
+const amount = (value: unknown): number => {
+	const parsed = typeof value === 'string' ? Number(value) : value;
+	return typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : 0;
+};
 
-/**
- * Validates and upgrades whatever is on disk. Returns null when the value is
- * not recognisable data at all, so callers can fall back to an empty document.
- */
-export function parseTourReportData(value: unknown): TourReportData | null {
-	if (!value || typeof value !== 'object') return null;
-
-	const data = value as StoredShape;
-	if (data.version !== 1 && data.version !== DATA_VERSION) return null;
-	if (!Array.isArray(data.tours) || !Array.isArray(data.tourists)) return null;
-	if (!Array.isArray(data.excursions)) return null;
-
-	return {
-		version: DATA_VERSION,
-		tours: (data.tours as Loose<Tour>[]).map(normalizeTour),
-		tourists: (data.tourists as Loose<Tourist>[]).map(normalizeTourist),
-		excursions: (data.excursions as Loose<Excursion>[]).map(normalizeExcursion)
-	};
+/** Maps an unknown payload through a normalizer, tolerating a non-array body. */
+export function normalizeList<T>(value: unknown, normalize: (item: unknown) => T): T[] {
+	return Array.isArray(value) ? value.map(normalize) : [];
 }
 
-function normalizeTour(tour: Loose<Tour>): Tour {
+export function normalizeTour(value: unknown): Tour {
+	const tour = (value ?? {}) as Loose<Tour>;
+
 	return {
 		id: text(tour.id),
 		name: text(tour.name),
@@ -66,8 +48,6 @@ function normalizeTour(tour: Loose<Tour>): Tour {
 		startDate: text(tour.startDate),
 		endDate: text(tour.endDate),
 		status: isTourStatus(tour.status) ? tour.status : 'planned',
-		// Missing relation arrays were the cause of a blank tour page: every
-		// consumer calls .includes() on these without checking.
 		touristIds: idList(tour.touristIds),
 		excursionIds: idList(tour.excursionIds),
 		notes: text(tour.notes),
@@ -76,7 +56,9 @@ function normalizeTour(tour: Loose<Tour>): Tour {
 	};
 }
 
-function normalizeTourist(tourist: Loose<Tourist>): Tourist {
+export function normalizeTourist(value: unknown): Tourist {
+	const tourist = (value ?? {}) as Loose<Tourist>;
+
 	return {
 		id: text(tourist.id),
 		fullName: text(tourist.fullName),
@@ -89,7 +71,9 @@ function normalizeTourist(tourist: Loose<Tourist>): Tourist {
 	};
 }
 
-function normalizeExcursion(excursion: Loose<Excursion>): Excursion {
+export function normalizeExcursion(value: unknown): Excursion {
+	const excursion = (value ?? {}) as Loose<Excursion>;
+
 	return {
 		id: text(excursion.id),
 		title: text(excursion.title),
@@ -103,9 +87,22 @@ function normalizeExcursion(excursion: Loose<Excursion>): Excursion {
 		// `entities` at runtime. The types still check the values.
 		status: isExcursionStatus(excursion.status) ? excursion.status : 'pending',
 		paidTouristIds: idList(excursion.paidTouristIds),
-		receipts: Array.isArray(excursion.receipts) ? (excursion.receipts as Attachment[]) : [],
+		receipts: normalizeList(excursion.receipts, normalizeAttachment),
 		createdAt: text(excursion.createdAt),
 		updatedAt: text(excursion.updatedAt)
+	};
+}
+
+export function normalizeAttachment(value: unknown): Attachment {
+	const attachment = (value ?? {}) as Loose<Attachment>;
+
+	return {
+		id: text(attachment.id),
+		name: text(attachment.name),
+		mimeType: text(attachment.mimeType),
+		size: amount(attachment.size),
+		createdAt: text(attachment.createdAt),
+		url: text(attachment.url)
 	};
 }
 
@@ -115,8 +112,4 @@ function isTourStatus(value: unknown): value is Tour['status'] {
 
 function isExcursionStatus(value: unknown): value is Excursion['status'] {
 	return value === 'pending' || value === 'completed' || value === 'cancelled';
-}
-
-export function createEmptyData(): TourReportData {
-	return { version: DATA_VERSION, tours: [], tourists: [], excursions: [] };
 }

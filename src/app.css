@@ -153,6 +153,39 @@ a {
 	color: var(--text-muted);
 }
 
+/* Every request-bound control shares this: no hover lift, no second click. */
+.button:disabled,
+.button[aria-busy='true'] {
+	cursor: progress;
+	opacity: 0.65;
+}
+
+.button:disabled:hover {
+	transform: none;
+}
+
+/*
+ * The inline sibling of `.loading-screen span` — same spinner, sized to sit
+ * inside a button label. `currentColor` keeps it legible on every variant.
+ */
+.button-spinner {
+	display: inline-block;
+	width: 0.85rem;
+	height: 0.85rem;
+	flex: 0 0 auto;
+	border: 2px solid currentColor;
+	border-radius: 50%;
+	border-top-color: transparent;
+	opacity: 0.8;
+	animation: spin 700ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.button-spinner {
+		animation-duration: 2s;
+	}
+}
+
 .toolbar {
 	display: flex;
 	align-items: center;
@@ -606,6 +639,12 @@ form legend {
 	to {
 		transform: rotate(360deg);
 	}
+}
+
+/* Card edit/delete controls while their entity has a request in flight. */
+.card-actions button:disabled {
+	cursor: progress;
+	opacity: 0.5;
 }
 
 @media (max-width: 1100px) {

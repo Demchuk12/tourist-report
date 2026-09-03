@@ -1,5 +1,5 @@
 import type { Locale } from '$lib/paraglide/runtime';
-import type { TourReportData } from '$lib/shared/api/tour-report-repository';
+import type { TourReportData } from '$lib/shared/api/tour-report-data';
 
 export type CalendarEventType = 'tour' | 'excursion';
 export type CalendarTemporal = 'past' | 'today' | 'future';
